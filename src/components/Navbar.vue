@@ -12,24 +12,25 @@ import {
   ChartBarSquareIcon,
 } from "@heroicons/vue/24/outline"
 
-const isOpen = ref(false)
-const isScrolled = ref(false)
+const isOpen        = ref(false)
+const isScrolled    = ref(false)
+const activeSection = ref("home") // tracks the current visible section
 
 const props = defineProps({
   hasResult: { type: Boolean, default: false }
 })
 
 const staticLinks = [
-  { href: "#home", label: "Home", icon: HomeIcon },
-  { href: "#aboutUs", label: "About Us", icon: UserGroupIcon },
-  { href: "#ATM", label: "About The Model", icon: CpuChipIcon },
-  { href: "#contactUS", label: "Contact US", icon: EnvelopeIcon },
+  { href: "/",      label: "Home",            icon: HomeIcon },
+  { href: "#aboutUs",   label: "About Us",         icon: UserGroupIcon },
+  { href: "#ATM",       label: "About The Model",  icon: CpuChipIcon },
+  { href: "#contactUS", label: "Contact US",        icon: EnvelopeIcon },
 ]
 
 const ctpLink = computed(() =>
   props.hasResult
-    ? { href: "#AR", label: "Analysis Result", icon: ChartBarSquareIcon }
-    : { href: "#CTP", label: "Check Password", icon: ShieldCheckIcon }
+    ? { href: "#AR",  label: "Analysis Result", icon: ChartBarSquareIcon }
+    : { href: "#CTP", label: "Check Password",  icon: ShieldCheckIcon }
 )
 
 const navLinks = computed(() => [
@@ -39,6 +40,27 @@ const navLinks = computed(() => [
   staticLinks[2],
   staticLinks[3],
 ])
+
+// returns true when the link's section is currently in view
+const isActive = (href) => activeSection.value === href.replace("#", "")
+
+// watches all sections and updates activeSection on scroll
+let observer = null
+const initObserver = () => {
+  const ids = ["home", "aboutUs", "CTP", "AR", "ATM", "contactUS"]
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) activeSection.value = entry.target.id
+      })
+    },
+    { root: null, rootMargin: "-30% 0px -60% 0px", threshold: 0 }
+  )
+  ids.forEach((id) => {
+    const el = document.getElementById(id)
+    if (el) observer.observe(el)
+  })
+}
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
@@ -88,51 +110,61 @@ onMounted(() => {
     { opacity: 1, scale: 1, duration: 1.0, ease: "back.out(1.4)", delay: 1.4 }
   )
   window.addEventListener("scroll", handleScroll)
+  initObserver()
 })
 
 onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll)
+  if (observer) observer.disconnect()
 })
 </script>
 
 <template>
   <nav
-    class="fixed z-[999] w-full font-font-2 h-[12vh] transition-all duration-500"
+    class="fixed z-[999] w-full font-font-2 transition-all duration-500"
     :class="isScrolled
       ? 'bg-slate-950/90 backdrop-blur-md shadow-lg shadow-cyan-900/20'
       : 'bg-transparent shadow-sm shadow-gray-200/10'">
 
-    <div class="max-w-7xl mx-auto px-4">
+    <div class="max-w-7xl mx-auto">
       <div class="flex justify-between items-center h-[12vh]">
 
         <div class="nav-logo flex items-center justify-center">
-          <img :src="logo" alt="logo" class="h-[60px] w-[180px] object-contain cursor-pointer hover:scale-105 transition-transform duration-300">
+          <img
+            :src="logo"
+            alt="logo"
+            class="h-[60px] w-[180px] object-contain cursor-pointer hover:scale-105 transition-transform duration-300"
+          />
         </div>
 
-        <div class="hidden md:flex items-center text-[16px] space-x-8">
-
+        <div class="hidden md:flex items-center text-[18px] space-x-8">
           <a
             v-for="(link, i) in navLinks"
             :key="i"
             :href="link.href"
-            class="nav-link relative flex items-center gap-2 text-gray-200 group"
+            class="nav-link relative flex items-center gap-2 group transition-colors duration-300"
+            :class="isActive(link.href) ? 'text-[#48EDF9]' : 'text-gray-200'"
           >
             <component
               :is="link.icon"
-              class="w-6 h-6 text-gray-400 group-hover:text-[#48EDF9] transition-all duration-300"
+              class="w-5 h-5 transition-all duration-300"
+              :class="isActive(link.href) ? 'text-[#48EDF9]' : 'text-gray-400 group-hover:text-[#48EDF9]'"
             />
-
             <span class="group-hover:text-[#48EDF9] transition-colors duration-300">
               {{ link.label }}
             </span>
-
-            <span class="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#48EDF9] rounded-full transition-all duration-300 group-hover:w-full shadow-[0_0_8px_#48EDF9]"></span>
+            <span
+              class="absolute -bottom-1 left-0 h-[2px] bg-[#48EDF9] rounded-full shadow-[0_0_8px_#48EDF9] transition-all duration-300"
+              :class="isActive(link.href) ? 'w-full' : 'w-0 group-hover:w-full'"
+            ></span>
           </a>
-
         </div>
 
         <div class="md:hidden">
-          <button @click="toggleMenu" class="menu-btn text-cyan-400 p-2 rounded-md hover:bg-cyan-500/10 transition-all duration-300 hover:scale-110">
+          <button
+            @click="toggleMenu"
+            class="menu-btn text-cyan-400 p-2 rounded-md hover:bg-cyan-500/10 transition-all duration-300 hover:scale-110"
+          >
             <svg v-if="!isOpen" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
@@ -147,27 +179,24 @@ onUnmounted(() => {
 
     <div
       v-if="isOpen"
-      class="mobile-menu md:hidden absolute right-0 top-[12vh] w-[80%] h-screen z-[999] bg-gradient-to-br from-slate-950  to-cyan-900 backdrop-blur-lg border-l border-cyan-800/30 shadow-2xl"
+      class="mobile-menu md:hidden absolute right-0 top-[12vh] w-[80%] h-screen z-[999] bg-gradient-to-br from-slate-950 to-cyan-900 backdrop-blur-lg border-l border-cyan-800/30 shadow-2xl"
     >
       <div class="flex flex-col items-center py-10 space-y-8">
-
         <a
           v-for="(link, i) in navLinks"
           :key="i"
           :href="link.href"
           @click="closeMenu"
-          class="mobile-link flex items-center gap-3 text-gray-200 text-[20px] group"
+          class="mobile-link flex items-center gap-3 text-[20px] transition-colors duration-300"
+          :class="isActive(link.href) ? 'text-[#48EDF9]' : 'text-gray-200 hover:text-cyan-400'"
         >
           <component
             :is="link.icon"
-            class="w-6 h-6 text-cyan-400 group-hover:scale-110 transition"
+            class="w-6 h-6 transition"
+            :class="isActive(link.href) ? 'text-[#48EDF9]' : 'text-cyan-400'"
           />
-
-          <span class="group-hover:text-cyan-400 transition">
-            {{ link.label }}
-          </span>
+          <span>{{ link.label }}</span>
         </a>
-
       </div>
     </div>
 

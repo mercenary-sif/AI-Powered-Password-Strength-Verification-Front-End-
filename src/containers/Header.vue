@@ -60,7 +60,7 @@ onMounted(() => {
 
 <template>
 <header
-  id='home'
+  id='/'
   class="relative min-h-screen flex items-center justify-center text-white bg-cover bg-center"
   :style="{ backgroundImage: `url(${cover})` }"
 >
