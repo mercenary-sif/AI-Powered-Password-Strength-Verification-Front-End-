@@ -21,7 +21,7 @@ const props = defineProps({
 })
 
 const staticLinks = [
-  { href: "/",      label: "Home",            icon: HomeIcon },
+  { href: "#home",      label: "Home",            icon: HomeIcon },
   { href: "#aboutUs",   label: "About Us",         icon: UserGroupIcon },
   { href: "#ATM",       label: "About The Model",  icon: CpuChipIcon },
   { href: "#contactUS", label: "Contact US",        icon: EnvelopeIcon },
@@ -126,7 +126,7 @@ onUnmounted(() => {
       ? 'bg-slate-950/90 backdrop-blur-md shadow-lg shadow-cyan-900/20'
       : 'bg-transparent shadow-sm shadow-gray-200/10'">
 
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto px-8">
       <div class="flex justify-between items-center h-[12vh]">
 
         <div class="nav-logo flex items-center justify-center">
@@ -137,7 +137,7 @@ onUnmounted(() => {
           />
         </div>
 
-        <div class="hidden md:flex items-center text-[18px] space-x-8">
+        <div class="hidden md:flex items-center text-[17px] space-x-8">
           <a
             v-for="(link, i) in navLinks"
             :key="i"
